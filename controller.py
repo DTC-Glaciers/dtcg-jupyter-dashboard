@@ -67,6 +67,8 @@ class Dashboard:
         self.glacier_selector.param.watch(self._on_glacier_change, ["value"])
         self.year_selector.param.watch(self._on_year_change, ["value"])
         self.model_selector.param.watch(self._on_model_change, ["value"])
+
+        self.region_selector.param.trigger("options", "value")
         self.glacier_selector.param.trigger("options", "value")
 
         self.progress_bar = pn.indicators.Progress(
@@ -139,7 +141,7 @@ class Dashboard:
             self.download_button = self.set_download_button()
 
             elapsed = time.time() - start_time
-            print(f"✓ Done in {elapsed:.2f}s")
+            print(f"Done in {elapsed:.2f}s")
         finally:
             # Hide loading indicator
             pn.io.loading.stop_loading_spinner(self.plots_oggm_container)
@@ -149,7 +151,6 @@ class Dashboard:
     def _update_plots(self):
         glacier = self.glacier_selector.value
         model = self.model_selector.value
-
         figures_l2 = self.plotter.create_l2_plots(
             data=self._current_data, year=self._current_year, model_name=model
         )
@@ -177,7 +178,9 @@ class Dashboard:
             if self._current_shapefile is not None:
                 glacier_map = pn.panel(
                     self.plotter.plot_selection_map(
-                        shapefile=self._current_shapefile, rgi_id=self._current_rgi_id
+                        shapefile=self._current_shapefile,
+                        rgi_id=self._current_rgi_id,
+                        region_name=self.region_selector.value,
                     ).opts(max_width=250)
                 )
                 start_time = time.time()
@@ -186,11 +189,20 @@ class Dashboard:
                 # self.map.objects = [pn.panel(glacier_map)]
                 # self.map[0] = glacier_map
                 # self.map[:] = glacier_map
-                pane = pn.panel(glacier_map, sizing_mode="stretch_both")
+                pane = pn.FlexBox(
+                    glacier_map,
+                    sizing_mode="stretch_width",
+                    styles={
+                        "flex": "0 0 auto",
+                        "align-items": "stretch",
+                        "align-content": "stretch",
+                        "flex-wrap": "nowrap",
+                    },
+                )
                 self.map[:] = pane
 
                 elapsed = time.time() - start_time
-                print(f"✓ Map set in {elapsed:.2f}s")
+                print(f"Map set in {elapsed:.2f}s")
             else:
                 self.map.objects = [pn.pane.Markdown(f"""No shapefile""")]
         except Exception as e:

@@ -158,7 +158,9 @@ class GlacierPlotter:
 
         return overlay
 
-    def plot_selection_map(self, shapefile, rgi_id) -> hv.Layout:
+    def plot_selection_map(
+        self, shapefile, rgi_id: str, region_name: str = ""
+    ) -> hv.Layout:
         """Plot map showing the selected glacier.
 
         Parameters
@@ -179,6 +181,19 @@ class GlacierPlotter:
             fig_glacier_highlight = self.plot_map.plot_region(
                 shapefile=shapefile, glacier_data=glacier_data, region_id=rgi_id[6:8]
             )
-            return fig_glacier_highlight
+            if not region_name:
+                region_name = rgi_id
+            return fig_glacier_highlight.opts(
+                # **self.defaults,
+                scalebar=True,
+                title=region_name,
+                active_tools=["pan", "wheel_zoom"],
+                backend_opts={"title.align": "center"},
+                toolbar=None,
+                show_frame=False,
+                margin=0,
+                border=0,
+                # xlim=glacier_highlight.range("Latitude")
+            )
         except Exception as e:
             return pn.pane.Markdown(f"""#Error in plot_selection_map: {e}""")

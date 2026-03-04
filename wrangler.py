@@ -18,20 +18,35 @@ class GlacierDataCache:
     def get_glacier_index(self) -> dict:
         """Get glacier_index."""
         if self._glacier_index is None:
-            # In real implementation: Load from glacier_index.json
-            self._glacier_index = {
-                "Central Europe": {
-                    "Hintereisferner": "RGI60-11.00897",
-                    "Kesselwandferner": "RGI60-11.00787",
-                    "Vernagtferner": "RGI60-11.00719",
-                },
-                "Iceland": {
-                    "Bruarjoekull": "RGI60-06.00377",
-                    "Skeidararjoekull": "RGI60-06.00475",
-                    "Breidamerkurjoekull": "RGI60-06.00483",
-                },
-            }
-            # self._glacier_index = self.get_cached_glacier_index(cache=self.cache_path)
+            """TODO: This isn't scalable for multiple regions.
+
+            Restructure so the region name is loaded dynamically in
+            controller when "_on_region_change" is triggered. Ideally
+            the glacier index should be called from
+            `RGI-XX/glacier_index.json` rather than the current "global"
+            glacier_index.json.
+            """
+            metadata = self.get_cached_glacier_index(cache=self.cache_path)
+            regions = {"Central Europe", "Iceland"}
+            glacier_hash = {}
+
+            def sort_rgi(word):
+                """Ensure glaciers are sorted alphabetically, with RGIs at the end."""
+                if not word[0][0:3] == "RGI":
+                    return word[0]
+                else:
+                    return f"zzz{word}"
+
+            for name in regions:
+                glacier_hash[name] = {}
+                for k, v in metadata[name].items():
+                    glacier_hash[name].update({v["Name"]: k})
+                    glacier_hash[name] = dict(
+                        sorted(glacier_hash[name].items(), key=sort_rgi)
+                    )
+
+            self._glacier_index = dict(sorted(glacier_hash.items()))
+
         return self._glacier_index
 
     async def get_glacier_data(self, rgi_id: str) -> dict:
