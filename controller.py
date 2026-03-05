@@ -20,7 +20,12 @@ class Dashboard:
 
         self.plots_oggm_container = pn.Column(
             pn.pane.Markdown("### Select a glacier to view data"),
-            sizing_mode="stretch_width",
+            sizing_mode="stretch_width",styles={
+            "flex": "1 1 auto",
+            "align-items": "stretch",
+            "align-content": "stretch",
+            "flex-wrap": "nowrap",
+        },
         )
         self.plots_cryosat_container = pn.Column(
             pn.pane.Markdown("### No CryoSat data available.", name="CryoSat Data"),
@@ -156,8 +161,38 @@ class Dashboard:
         )
 
         self.plots_oggm_container.objects = [
-            pn.pane.Markdown(f"### {glacier} ({self._current_year})"),
-            *figures_l2,
+            pn.pane.Markdown(
+                f"### {glacier} ({self._current_year})",
+                sizing_mode="stretch_width",
+                styles={
+                    "flex": "1 1 auto",
+                    "align-items": "stretch",
+                    "align-content": "stretch",
+                    "flex-wrap": "nowrap",
+                },
+            ),
+            pn.Row(
+                figures_l2[0],
+                figures_l2[1],
+                sizing_mode="stretch_width",
+                styles={
+                    "flex": "1 1 auto",
+                    "align-items": "stretch",
+                    "align-content": "stretch",
+                    "flex-wrap": "nowrap",
+                },
+            ),
+            pn.Row(
+                figures_l2[2],
+                figures_l2[3],
+                sizing_mode="stretch_width",
+                styles={
+                    "flex": "1 1 auto",
+                    "align-items": "stretch",
+                    "align-content": "stretch",
+                    "flex-wrap": "nowrap",
+                },
+            ),
         ]
         self.glacier_info.object = self.set_details(self._current_data)
 
@@ -167,7 +202,17 @@ class Dashboard:
         if figures_l1:
             self.plots_cryosat_container.objects = [
                 pn.pane.Markdown(f"### {glacier} ({self._current_year})"),
-                *figures_l1,
+                pn.Row(
+                figures_l1[0],
+                figures_l1[1],
+                sizing_mode="stretch_width",
+                styles={
+                    "flex": "1 1 auto",
+                    "align-items": "stretch",
+                    "align-content": "stretch",
+                    "flex-wrap": "nowrap",
+                },
+            ),
             ]
 
         return figures_l1, figures_l2
