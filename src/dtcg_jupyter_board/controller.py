@@ -8,8 +8,6 @@ import holoviews as hv
 import panel as pn
 import param
 
-from profilers import timing
-
 
 class Dashboard:
     """Arranges UI and updates data in place."""
@@ -165,7 +163,6 @@ class Dashboard:
             pn.io.loading.stop_loading_spinner(self.plots_cryosat_container)
             self.disable_selectors(disabled=False)
 
-    @timing
     def _update_plots(self):
         glacier = self.glacier_selector.value
         model = self.model_selector.value
@@ -191,9 +188,9 @@ class Dashboard:
         if figures_l1:
             with param.parameterized.batch_call_watchers(self.plots_cryosat_container):
                 cryosat_objects = [
-                pn.pane.Markdown(f"### {glacier} ({self._current_year})"),
-                *figures_l1,
-            ]
+                    pn.pane.Markdown(f"### {glacier} ({self._current_year})"),
+                    *figures_l1,
+                ]
                 self.plots_cryosat_container.objects = cryosat_objects
 
         return figures_l1, figures_l2

@@ -3,8 +3,6 @@ import geoviews as gv
 import holoviews as hv
 import panel as pn
 
-from profilers import timing
-
 # Configure panel
 pn.extension("notifications")
 pn.extension(design="material", sizing_mode="stretch_width")
@@ -21,7 +19,6 @@ class GlacierPlotter:
         # self.tooltips = self.plot_map.tooltips
         # self.hover_tool = self.plot_map.hover_tool
 
-    @timing
     def create_l2_plots(
         self, data: dict, year: int, model_name: str = "DailyTIModel"
     ) -> tuple:
@@ -78,7 +75,6 @@ class GlacierPlotter:
 
         return figures
 
-    @timing
     def create_l1_plots(self, data: dict, year: int) -> tuple:
         """Create L1 Bokeh plots from data."""
         gdir = data["gdir"]
@@ -99,7 +95,10 @@ class GlacierPlotter:
                 cumulative=False,
                 glacier_area=gdir.get("rgi_area_km2", None),
             ).opts(title="Cumulative Specific Mass Balance (CryoSat)")
-            figures = [pn.pane.HoloViews(fig_eo_elevation), pn.pane.HoloViews(fig_eo_smb)]
+            figures = [
+                pn.pane.HoloViews(fig_eo_elevation),
+                pn.pane.HoloViews(fig_eo_smb),
+            ]
 
         return figures
 
