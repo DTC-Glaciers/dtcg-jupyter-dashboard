@@ -1,5 +1,4 @@
 import asyncio
-import time
 from datetime import date
 from pathlib import Path
 from typing import Optional
@@ -7,6 +6,9 @@ from typing import Optional
 import geopandas as gpd
 import holoviews as hv
 import panel as pn
+import param
+
+from profilers import timing
 
 
 class Dashboard:
@@ -18,18 +20,15 @@ class Dashboard:
         self.plotter = plotter
         self.streamer = streamer
 
-        self.plots_oggm_container = pn.Column(
-            pn.pane.Markdown("### Select a glacier to view data"),
-            sizing_mode="stretch_width",styles={
-            "flex": "1 1 auto",
-            "align-items": "stretch",
-            "align-content": "stretch",
-            "flex-wrap": "nowrap",
-        },
+        self.plots_oggm_container = pn.FlexBox(
+            pn.Column(pn.pane.Markdown("### Select a glacier to view data")),
+            sizing_mode="stretch_width",
+            styles=self.get_flex_styling(),
         )
         self.plots_cryosat_container = pn.Column(
             pn.pane.Markdown("### No CryoSat data available.", name="CryoSat Data"),
             sizing_mode="stretch_width",
+            styles=self.get_flex_styling(),
         )
         self.map = pn.FlexBox(pn.pane.Markdown(f"""Test init"""))
         self.glacier_info = pn.pane.HTML()
@@ -83,6 +82,25 @@ class Dashboard:
         pn.io.loading.stop_loading_spinner(self.plots_oggm_container)
         pn.io.loading.stop_loading_spinner(self.plots_cryosat_container)
 
+    def get_flex_styling(self, style=None) -> dict:
+        """Get CSS styling for flex boxes.
+
+        .. note:: Not-so-temporary workaround for unsolved bugs in
+        Panel:
+           - https://github.com/holoviz/panel/issues/5343
+           - https://github.com/holoviz/panel/issues/5054
+           - https://github.com/holoviz/panel/issues/1296
+        """
+        if not style:
+            style = {
+                "flex": "1 1 auto",
+                "align-items": "stretch",
+                "align-content": "flex-start",
+                "flex-wrap": "nowrap",
+            }
+
+        return style
+
     def _on_region_change(self, *events):
         """Callback for when the region changes."""
         region = self.region_selector.value
@@ -125,9 +143,6 @@ class Dashboard:
         # Get RGI ID
         rgi_id = self._glacier_index[region][glacier]
 
-        # Show loading indicator
-        start_time = time.time()
-
         try:
             # Load data asynchronously
             data = await self.data_cache.get_glacier_data(rgi_id)
@@ -142,17 +157,15 @@ class Dashboard:
             self.set_map()
             self._update_plots()
 
-            print("Setting map")
             self.download_button = self.set_download_button()
 
-            elapsed = time.time() - start_time
-            print(f"Done in {elapsed:.2f}s")
         finally:
             # Hide loading indicator
             pn.io.loading.stop_loading_spinner(self.plots_oggm_container)
             pn.io.loading.stop_loading_spinner(self.plots_cryosat_container)
             self.disable_selectors(disabled=False)
 
+    @timing
     def _update_plots(self):
         glacier = self.glacier_selector.value
         model = self.model_selector.value
@@ -160,60 +173,28 @@ class Dashboard:
             data=self._current_data, year=self._current_year, model_name=model
         )
 
-        self.plots_oggm_container.objects = [
-            pn.pane.Markdown(
-                f"### {glacier} ({self._current_year})",
-                sizing_mode="stretch_width",
-                styles={
-                    "flex": "1 1 auto",
-                    "align-items": "stretch",
-                    "align-content": "stretch",
-                    "flex-wrap": "nowrap",
-                },
-            ),
-            pn.Row(
-                figures_l2[0],
-                figures_l2[1],
-                sizing_mode="stretch_width",
-                styles={
-                    "flex": "1 1 auto",
-                    "align-items": "stretch",
-                    "align-content": "stretch",
-                    "flex-wrap": "nowrap",
-                },
-            ),
-            pn.Row(
-                figures_l2[2],
-                figures_l2[3],
-                sizing_mode="stretch_width",
-                styles={
-                    "flex": "1 1 auto",
-                    "align-items": "stretch",
-                    "align-content": "stretch",
-                    "flex-wrap": "nowrap",
-                },
-            ),
-        ]
+        with param.parameterized.batch_call_watchers(self.plots_oggm_container):
+            oggm_objects = [
+                pn.pane.Markdown(
+                    f"### {glacier} ({self._current_year})",
+                    sizing_mode="stretch_width",
+                    styles=self.get_flex_styling(),
+                ),
+                *figures_l2,
+            ]
+            self.plots_oggm_container.objects = oggm_objects
         self.glacier_info.object = self.set_details(self._current_data)
 
         figures_l1 = self.plotter.create_l1_plots(
             data=self._current_data, year=self._current_year
         )
         if figures_l1:
-            self.plots_cryosat_container.objects = [
+            with param.parameterized.batch_call_watchers(self.plots_cryosat_container):
+                cryosat_objects = [
                 pn.pane.Markdown(f"### {glacier} ({self._current_year})"),
-                pn.Row(
-                figures_l1[0],
-                figures_l1[1],
-                sizing_mode="stretch_width",
-                styles={
-                    "flex": "1 1 auto",
-                    "align-items": "stretch",
-                    "align-content": "stretch",
-                    "flex-wrap": "nowrap",
-                },
-            ),
+                *figures_l1,
             ]
+                self.plots_cryosat_container.objects = cryosat_objects
 
         return figures_l1, figures_l2
 
@@ -228,26 +209,7 @@ class Dashboard:
                         region_name=self.region_selector.value,
                     ).opts(max_width=250)
                 )
-                start_time = time.time()
-                # TODO: This assignment is a bottleneck (~1.74s)!
-                # glacier_objects = pn.panel(glacier_map).objects
-                # self.map.objects = [pn.panel(glacier_map)]
-                # self.map[0] = glacier_map
-                # self.map[:] = glacier_map
-                pane = pn.FlexBox(
-                    glacier_map,
-                    sizing_mode="stretch_width",
-                    styles={
-                        "flex": "0 0 auto",
-                        "align-items": "stretch",
-                        "align-content": "stretch",
-                        "flex-wrap": "nowrap",
-                    },
-                )
-                self.map[:] = pane
-
-                elapsed = time.time() - start_time
-                print(f"Map set in {elapsed:.2f}s")
+                self.map[:] = glacier_map
             else:
                 self.map.objects = [pn.pane.Markdown(f"""No shapefile""")]
         except Exception as e:
@@ -335,11 +297,11 @@ class Dashboard:
             )
             path = ""
         finally:
-            print(f"Datacube path: {path}")
             self.download_button.disabled = False
             self.disable_selectors(disabled=False)
             self.progress_bar.value = 0
-        return path  # avoid unbound local errors and other such things
+            # returns in finally blocks will deprecate with Python 3.15
+            return path  # avoid unbound local errors and other such things
 
     def get_filename(self):
         filename = f"{self._current_rgi_id}.zarr.zip"
