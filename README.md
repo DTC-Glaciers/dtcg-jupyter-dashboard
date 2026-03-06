@@ -6,7 +6,7 @@ Jupyter reimplementation of dtcg-web
 ```
 uv venv
 source .venv/bin/activate
-uv sync
+uv sync --extra oggm
 ```
 
 ## Serve the dashboard

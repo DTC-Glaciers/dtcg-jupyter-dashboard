@@ -5,7 +5,7 @@ build-backend = "uv_build"
 [project]
 name = "dtcg-jupyter-board"
 version = "0.1.0"
-description = "Jupyter binder for DTCG"
+description = "Jupyter-based frontend for DTCG"
 readme = "README.md"
 requires-python = ">=3.12"
 
