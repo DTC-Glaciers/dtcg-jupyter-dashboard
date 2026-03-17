@@ -9,7 +9,7 @@ pn.extension("notifications")
 pn.extension(design="material", sizing_mode="stretch_width")
 
 
-def main():
+def app():
 
     data_cache = wrangler.GlacierDataCache()
     plotter = plotting.GlacierPlotter()
@@ -25,5 +25,4 @@ def main():
     return template.servable()
 
 
-if __name__ == "__main__":
-    main()
+app()

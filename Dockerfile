@@ -16,7 +16,4 @@ RUN uv sync --no-dev --extra oggm
 # RUN uv pip install --upgrade -e .[oggm]
 
 WORKDIR /app/dtcgboard/
-CMD ["/app/.venv/bin/panel", "serve", "dashboard.ipynb", "--port", "8080"]
-
-# CMD ["fastapi", "run", "app.py", "--proxy-headers", "--port", "8080"]
-# CMD ["/app/.venv/bin/fastapi", "run", "app/main.py", "--port", "80", "--host", "0.0.0.0"]
+CMD ["/app/.venv/bin/panel", "serve", "app.py", "--port", "8080", "--prefix", "/dtcgboard", "--num-threads", "0", "--num-procs", "2", "--address", "0.0.0.0", "--index", "app"]
