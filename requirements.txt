@@ -1,7 +1,7 @@
 bokeh>=3.8.2
 bokeh-fastapi>=0.1.5
 dask>=2026.1.2
-dtcg @ git+https://github.com/dtc-glaciers/dtcg@releases/tag/v1.1.4
+dtcg @ git+https://github.com/dtc-glaciers/dtcg@v1.1.4
 oggm @ git+https://github.com/gampnico/oggm@feat-dtcg
 fsspec>=2026.2.0
 geopandas>=1.1.2
