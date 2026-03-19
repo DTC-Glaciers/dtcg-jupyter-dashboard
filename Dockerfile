@@ -9,8 +9,9 @@ WORKDIR /app/
 COPY ./pyproject.toml /app/pyproject.toml
 COPY ./README.md /app/README.md
 COPY ./LICENSE /app/LICENSE
-COPY ./src/dtcg_jupyter_board /app/dtcgboard
-COPY ./src/dtcg_jupyter_board/static/ /app/static/
+COPY *.py /app/dtcgboard/
+COPY *.ipynb /app/dtcgboard/
+COPY ./static/ /app/static/
 
 RUN uv sync --no-dev --extra oggm
 # RUN uv pip install --upgrade -e .[oggm]

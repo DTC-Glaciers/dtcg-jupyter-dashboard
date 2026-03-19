@@ -12,5 +12,5 @@ uv sync --extra oggm
 ## Serve the dashboard
 
 ```
-panel serve dashboard.ipynb  # use --dev flag for development
+panel serve app.ipynb  # use --dev flag for development
 ```

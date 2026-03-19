@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dtcg-jupyter-board"
-version = "0.2.1"
+version = "0.3.0"
 description = "Jupyter-based frontend for DTCG"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -93,12 +93,7 @@ tests = [
 dtcg = { git = "https://github.com/dtc-glaciers/dtcg" }
 oggm = { git = "https://github.com/gampnico/oggm@feat-dtcg" }
 
-[tool.uv.build-backend]
-module-name="dtcg_jupyter_dashboard"
-module-root="src"
-
 [tool.hatch.build.targets.sdist]
-packages = ["src/dtcg_jupyter_board"]
 exclude = [
     "logs",
     "*.png",
@@ -106,11 +101,7 @@ exclude = [
     "*.csv",
     "*.nc",
     "*.bat",
-    "*.sh",
 ]
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/dtcg_jupyter_board"]
 
 [tool.hatch.metadata]
 allow-direct-references = true
